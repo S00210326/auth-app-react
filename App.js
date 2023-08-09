@@ -7,8 +7,8 @@ import SignupScreen from "./screens/SignupScreen";
 import WelcomeScreen from "./screens/WelcomeScreen";
 import { Colors } from "./constants/styles";
 import AuthContextProvider, { AuthContext } from "./store/auth-context";
-import { useContext } from "react";
-
+import { useContext, useState } from "react";
+import AppLoading from "expo-app-loading";
 const Stack = createNativeStackNavigator();
 
 function AuthStack() {
@@ -62,6 +62,28 @@ function Navigation() {
       {authCtx.isAuthenticated && <AuthenticatedStack />}
     </NavigationContainer>
   );
+}
+
+function Root() {
+  const [isTryingLogin, setIsTryingLogin] = useState(true);
+  const authCtx = useContext(AuthContext);
+
+  useEffect(() => {
+    async function fetchToken() {
+      const storedToken = await AsyncStorage.getItem("token");
+
+      if (storedToken) {
+        authCtx.authenticate(storedToken);
+      }
+
+      setIsTryingLogin(false);
+    }
+    fetchToken();
+  }, []);
+  if (isTryingLogin) {
+    return <AppLoading />;
+  }
+  return <Navigation />;
 }
 
 export default function App() {
